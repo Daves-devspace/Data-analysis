@@ -1,103 +1,67 @@
-# Python Data Analysis Assignment
-# ========================
-# Objectives:
-# - Load and analyze a dataset using pandas.
-# - Create simple plots with matplotlib for visualization.
-
-# Task 1: Load and Explore the Dataset
+#1: Load and Explore the Dataset
 
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.datasets import load_iris
 
-# Use seaborn's 'flights' dataset (passengers over time)
+# Load the Iris dataset
 try:
-    df = sns.load_dataset('flights')
-    print("Dataset loaded successfully.\n")
+    iris = load_iris(as_frame=True)
+    df = iris.frame
 except Exception as e:
-    print(f"Error loading dataset: {e}")
-    raise
+    print("Error loading dataset:", e)
 
-# Display first few rows
-print("First five rows:")
-print(df.head(), "\n")
+# Show first few rows
+print(df.head())
 
-# Check data types and missing values
-print("Data types ..:")
-print(df.dtypes, "\n")
+# Check info
+print(df.info())
 
-print("Missing values per column:")
-print(df.isnull().sum(), "\n")
+# Check for missing values
+print("Missing values:\n", df.isnull().sum())
 
-# Clean dataset (drop any missing values, if present)
-df_clean = df.dropna()
-print(f"Shape after dropping missing values: {df_clean.shape}\n")
+# No cleaning needed for Iris dataset, but typically:
+# df = df.dropna() or df.fillna(method='ffill')
 
-# Task 2: Basic Data Analysis
+#2: Basic Data Analysis
 
-# 1. Summary statistics for numerical columns
-print("Summary statistics:")
-print(df_clean.describe(), "\n")
+# Basic stats
+print(df.describe())
 
-# 2. Group by year and compute mean passengers
-yearly_mean = df_clean.groupby('year')['passengers'].mean()
-print("Mean passengers per year:")
-print(yearly_mean, "\n")
+# Group by species and calculate mean of numerical values
+grouped = df.groupby('target').mean()
+print(grouped)
 
-# Task 3: Data Visualization
+# Add species names for clarity
+df['species'] = df['target'].apply(lambda x: iris.target_names[x])
+grouped_by_species = df.groupby('species').mean()
+print(grouped_by_species)
 
-# 1. Line chart: passengers over time
-# Convert 'year' and 'month' into a datetime for plotting
-df_clean['date'] = pd.to_datetime(
-    df_clean['year'].astype(str) + '-' + df_clean['month'],
-    format='%Y-%b'
-)
-
-plt.figure()
-plt.plot(df_clean['date'], df_clean['passengers'], linewidth=2)
-plt.title('Monthly Air Passengers Over Time')
-plt.xlabel('Date')
-plt.ylabel('Number of Passengers')
-plt.tight_layout()
-plt.grid(True)
+#3:Data Visualizations
+# Line chart: Mean petal length over index (not time-series, for example only)
+plt.plot(df['petal length (cm)'][:30])
+plt.title("Petal Length Over Index (Sample)")
+plt.xlabel("Sample Index")
+plt.ylabel("Petal Length (cm)")
 plt.show()
 
-# 2. Bar chart: average passengers by month
-monthly_mean = df_clean.groupby('month')['passengers'].mean()
-plt.figure()
-monthly_mean.reindex([
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-]).plot(kind='bar')
-plt.title('Average Passengers per Month (1949-1960)')
-plt.xlabel('Month')
-plt.ylabel('Average Number of Passengers')
-plt.xticks(rotation=45)
-plt.tight_layout()
+# Bar chart: Average petal length per species
+grouped_by_species['petal length (cm)'].plot(kind='bar', color='skyblue')
+plt.title("Average Petal Length by Species")
+plt.ylabel("Petal Length (cm)")
 plt.show()
 
-# 3. Histogram: distribution of passenger counts
-plt.figure()
-plt.hist(df_clean['passengers'], bins=12)
-plt.title('Distribution of Monthly Passenger Counts')
-plt.xlabel('Number of Passengers')
-plt.ylabel('Frequency')
-plt.tight_layout()
+# Histogram: Sepal width
+plt.hist(df['sepal width (cm)'], bins=10, color='orange', edgecolor='black')
+plt.title("Distribution of Sepal Width")
+plt.xlabel("Sepal Width (cm)")
+plt.ylabel("Frequency")
 plt.show()
 
-# 4. Scatter plot: year vs passengers
-plt.figure()
-plt.scatter(df_clean['year'], df_clean['passengers'], alpha=0.7)
-plt.title('Year vs. Passenger Count')
-plt.xlabel('Year')
-plt.ylabel('Number of Passengers')
-plt.tight_layout()
+# Scatter Plot: Sepal Length vs Petal Length
+sns.scatterplot(data=df, x='sepal length (cm)', y='petal length (cm)', hue='species')
+plt.title("Sepal vs Petal Length by Species")
+plt.xlabel("Sepal Length (cm)")
+plt.ylabel("Petal Length (cm)")
 plt.show()
-
-# Observations:
-# - The line chart shows a clear upward trend in air passengers from 1949 to 1960.
-# - Seasonal patterns are visible: peaks in mid-year months (June-August).
-# - The bar chart confirms higher average passenger counts in summer months.
-# - The histogram reveals a right-skewed distribution.
-# - The scatter plot highlights year-over-year growth with some variability in counts.
-
